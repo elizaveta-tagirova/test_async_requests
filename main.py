@@ -1,14 +1,9 @@
 import asyncio
 import aiohttp
+
 from collections import defaultdict
-import functools
-import time
-from math import ceil
-import requests
-import json
-from time import sleep
-from random import randint
 from enum import Enum
+from math import ceil
 
 
 class PostsItemsConfig(Enum):
@@ -39,14 +34,12 @@ def get_initial_params_for_pagination(param_keys):
 def get_params_for_pagination(data, param_keys):
     if isinstance(param_keys, MoviesItemsConfig):
         pages_num = data[param_keys.value[1]]
-        # param_values = [i for i in range(1, pages_num + 1)]
-        param_values = [i for i in range(1, 3)]
+        param_values = [i for i in range(1, pages_num + 1)]
     else:
         items_total = data[param_keys.value[1]]
         limit = data[param_keys.value[2]]
         pages_num = ceil(items_total / limit)
-        # param_values = [i * limit for i in range(0, pages_num + 1)]
-        param_values = [i * limit for i in range(0, 2)]
+        param_values = [i * limit for i in range(0, pages_num + 1)]
     return [{param_keys.value[0]: value} for value in param_values]
 
 
@@ -69,11 +62,8 @@ def save_items(data, all_items, all_items_ids):
 async def fetch_request(session, url, params={}):
     async with session.get(url, params=params) as response:
         if response.status == 200:
-            sleep(1)
             return await response.json(content_type=None)
         else:
-            # print(response)
-            sleep(1)
             return {}
 
 
@@ -106,15 +96,10 @@ async def main(headers):
 
     items_weights_url = f"{config.HOST.value}/{config.ITEM_WEIGHT_ROUTE.value}"
     items_weights = await get_items_weights(items_weights_url, all_items_ids, headers)
-    # items_weights = dict()
-    # for _id in all_items_ids:
-    #     items_weights[_id] = randint(1, 20)
 
     for item_category, items in all_items.items():
         items = sorted(items, key=lambda item: items_weights[item], reverse=True)
         print(f"top 5 for {item_category}: {items[:5]}")
-
-    print()
 
 
 if __name__ == "__main__":
@@ -135,15 +120,4 @@ if __name__ == "__main__":
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
     }
 
-    # HOST = "https://dummyjson.com"
-    # ROUTES = {"items": "posts/", "item_weight": "posts/{item_id}/comments/"}
-    # PARAMS = {"skip": 0}
-
-    # HOST = "http://185.128.106.196:8000"
-    # ROUTES = {"items": "movies/", "item_data": "user_scores/{item_id}/'"}
-    # PARAMS = {"page": 1}
-
     asyncio.run(main(HEADERS))
-
-    # items_url = f"{HOST}/{ROUTES['items']}"
-    # responses = asyncio.run(get_items(items_url, PARAMS))
